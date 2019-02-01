@@ -19,7 +19,56 @@ def ecdsa_verify(msg, pk, (r, s), curve=None, hash_fn=hashlib.sha256):
     # and doing point multiplication.
     # See https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm#Signature_verification_algorithm
     # for the algorithm.
-    raise Exception('Not implemented!')
+
+    O = curve.G().mult(curve.n)
+
+    if not (pk.curve.on_curve(pk.x, pk.y)):
+        print("Public key is not on curve")
+        return False
+        #raise Exception("Public key is not on curve")
+
+    if (pk.x == O.x and pk.y == O.y):
+        print("Public key is equal to identity element")
+        return False
+        #raise Exception("Public key is equal to identity element")
+
+    pkO = pk.mult(curve.n)
+
+    # print(pkO.x, O.x, pkO.y, O.y)
+
+    if not (pkO.x == O.x and pkO.y == O.y):
+        print("Public key multiplied by n does not equal to identity element")
+        return False
+        #raise Exception("Public key multiplied by n does not equal to identity element")
+
+    if r<1 or r>=curve.n or s<1 or s>=curve.n:
+        print("r or s out of bound")
+        return False
+        #raise Exception("r or s out of bound")
+        
+    e = hash_fn(msg).hexdigest()
+    z = int(e, 16)
+
+    w = ecdsa.modinv(s, curve.n) % curve.n
+
+    u_1 = z*w % curve.n
+    u_2 = r*w % curve.n
+    
+    U = curve.G().mult(u_1)
+    xy = U.add(pk.mult(u_2))
+
+    if (xy.x == O.x and xy.y == O.y):
+        print("(x1, y1) = O - Signature invalid")
+        return False
+        # raise Exception("(x1, y1) = O - Signature invalid")
+
+    if r == xy.x % curve.n:
+        return True
+    
+    print("r != x1")
+    return False
+
+    #raise Exception('Not implemented!')
 
 
 if __name__ == '__main__':
