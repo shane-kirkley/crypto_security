@@ -1,2 +1,2 @@
 # crypto_security
-Code for Cryptocurrency Security course - Shane Kirkley
+Code for Cryptocurrency Security course
